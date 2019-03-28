@@ -1,0 +1,28 @@
+#!/bin/bash
+set -eo pipefail
+
+print_usage() {
+    echo "get-wp WORDPRESS_VERSION" >&2
+}
+
+if [[ -z "$1" || "$1" == "-h" ]] ; then
+    print_usage
+    exit 1
+fi
+
+WP_VERSION="$1"
+WP_ARCHIVE_FILE="$(mktemp)"
+WP_TMP_DIR="$(mktemp -d)"
+
+finish() {
+    rm -f "${WP_ARCHIVE_FILE}"
+    rm -rf "${WP_TMP_DIR}"
+    make patch
+}
+trap finish EXIT
+
+set -x
+curl -sL -o "$WP_ARCHIVE_FILE" "https://wordpress.org/wordpress-$WP_VERSION.tar.gz"
+tar -zxf "$WP_ARCHIVE_FILE" -C "${WP_TMP_DIR}" --strip-components=1
+rm -rf wordpress
+mv "${WP_TMP_DIR}" "wordpress"

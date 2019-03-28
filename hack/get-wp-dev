@@ -1,0 +1,27 @@
+#!/bin/bash
+set -eo pipefail
+
+print_usage() {
+    echo "get-wp-dev WORDPRESS_DEVELOP_VERSION" >&2
+}
+
+if [[ -z "$1" || "$1" == "-h" ]] ; then
+    print_usage
+    exit 1
+fi
+
+WP_DEV_VERSION="$1"
+WP_DEV_ARCHIVE_FILE="$(mktemp)"
+WP_DEV_TMP_DIR="$(mktemp -d)"
+
+finish() {
+    rm -f "${WP_DEV_ARCHIVE_FILE}"
+    rm -rf "${WP_DEV_TMP_DIR}"
+}
+trap finish EXIT
+
+set -x
+curl -sL -o "$WP_DEV_ARCHIVE_FILE" "https://github.com/WordPress/wordpress-develop/archive/$WP_DEV_VERSION.tar.gz"
+tar -zxf "$WP_DEV_ARCHIVE_FILE" -C "${WP_DEV_TMP_DIR}" --strip-components=1
+rm -rf wordpress-develop
+mv "${WP_DEV_TMP_DIR}" "wordpress-develop"

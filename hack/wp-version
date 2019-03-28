@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+
+require_once DIRNAME(__DIR__) . '/wordpress/wp-includes/version.php';
+
+echo "$wp_version" . PHP_EOL;

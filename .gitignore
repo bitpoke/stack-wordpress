@@ -1,0 +1,5 @@
+/wp-content
+/vendor
+/.env
+/docker-compose.override.yml
+.rclone-*
