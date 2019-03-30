@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.3.3
+ARG PHP_VERSION=7.2.16
 FROM php:${PHP_VERSION}-fpm-stretch as php
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -27,7 +27,7 @@ RUN set -ex \
     && /usr/local/docker/build-scripts/install-composer \
     && /usr/local/docker/build-scripts/install-dockerize \
     && /usr/local/docker/build-scripts/install-supervisord \
-    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.minimal.yaml \
+    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.full.yaml \
     && rm -rf /var/lib/apt/lists/* /tmp/pear/*
 
 # prepare rootfs
@@ -50,3 +50,20 @@ USER www-data:www-data
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/docker/bin/docker-php-entrypoint"]
 CMD ["supervisord", "-c", "/usr/local/docker/etc/supervisor.conf"]
+
+
+FROM php as wordpress-builder
+RUN rm -rf /var/www/html
+COPY --chown=www-data:www-data wordpress /var/www/wordpress
+COPY --chown=www-data:www-data hack/var-www-skel /var/www
+WORKDIR /var/www
+RUN set -ex \
+    && composer install --no-ansi --prefer-dist --no-dev \
+    && rm -rf wordpress .composer
+
+FROM php as wordpress
+
+ENV WP_HOME=http://localhost:8080
+
+RUN rm -rf /var/www/html
+COPY --from=wordpress-builder --chown=www-data:www-data /var/www /var/www

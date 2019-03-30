@@ -1,0 +1,30 @@
+{
+  "name": "presslabs-stack/wordpress-project",
+  "description": "WordPress composer project for Presslabs Stack",
+  "license": "GPL-2.0-or-later",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "./wordpress",
+      "options": {
+        "symlink": false
+      }
+    },
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "presslabs-stack/wordpress": "dev-master"
+  },
+  "extra": {
+    "wordpress-install-dir": "html/wp",
+    "installer-paths": {
+      "html/wp-content/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
+      "html/wp-content/plugins/{$name}/": ["type:wordpress-plugin"],
+      "html/wp-content/themes/{$name}/": ["type:wordpress-theme"]
+    }
+  }
+}
