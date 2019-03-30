@@ -31,6 +31,7 @@ pipeline:
 
   test:
     image: quay.io/presslabs/php-runtime:testing-${DRONE_BRANCH}-${PHP_VERSION}
+    pull: true # allways pull the latest tag
     environment:
       - DB_TEST_HOST=database
       - DB_TEST_USER=wordpress
