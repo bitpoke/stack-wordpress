@@ -1,23 +1,26 @@
 {
-  "name": "presslabs-stack/wordpress",
+  "name": "presslabs-stack/wordpress-develop",
   "description": "WordPress packaged Presslabs Stack",
-  "type": "wordpress-core",
   "license": "GPL-2.0-or-later",
-  "autoload": {
-    "psr-4": {"Presslabs\\": "src/Presslabs/"}
+  "autoload-dev": {
+    "psr-4": {"Presslabs\\Tests\\": "tests/"}
   },
   "repositories": [
+    {
+      "type": "path",
+      "url": "./wordpress",
+      "options": {
+        "symlink": true
+      }
+    },
     {
       "type": "composer",
       "url": "https://wpackagist.org"
     }
   ],
   "require": {
-    "php": ">=7.1",
-    "roots/wordpress-core-installer": ">=1.0.0",
-    "vlucas/phpdotenv": "^3.0.0",
-    "oscarotero/env": "^1.1.0",
-    "roots/wp-config": "1.0.0"
+    "php": ">=7.2",
+    "presslabs-stack/wordpress": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "^6.5",
@@ -31,10 +34,11 @@
     "wpackagist-plugin/debug-bar-constants":"^2.0.0"
   },
   "extra": {
+    "wordpress-install-dir": "web/wp",
     "installer-paths": {
-      "wp-content/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
-      "wp-content/plugins/{$name}/": ["type:wordpress-plugin"],
-      "wp-content/themes/{$name}/": ["type:wordpress-theme"]
+      "web/wp-content/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
+      "web/wp-content/plugins/{$name}/": ["type:wordpress-plugin"],
+      "web/wp-content/themes/{$name}/": ["type:wordpress-theme"]
     }
   },
   "scripts": {

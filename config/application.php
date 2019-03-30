@@ -1,10 +1,20 @@
 <?php
-require_once dirname(__FILE__) . '/vendor/autoload.php';
+/**
+ * Your base production configuration goes in this file. Environment-specific
+ * overrides go in their respective config/environments/{{WP_ENV}}.php file.
+ *
+ * A good default policy is to deviate from the production config as little as
+ * possible. Try to define as much of your configuration in this file as you
+ * can.
+ */
 
 use Roots\WPConfig\Config;
 
 /** @var string Directory containing all of the site's files */
-$root_dir = __DIR__;
+$root_dir = dirname(__DIR__);
+
+/** @var string Document Root */
+$webroot_dir = $root_dir . '/web';
 
 /**
  * Expose global env() function from oscarotero/env
@@ -38,10 +48,10 @@ Config::define('WP_SITEURL', env('WP_SITEURL'));
 /**
  * Custom Content Directory
  */
-Config::define('CONTENT_DIR', '/wp-content');
-Config::define('WP_CONTENT_DIR', $root_dir. Config::get('CONTENT_DIR'));
+Config::define('CONTENT_DIR', '/app');
+Config::define('WP_CONTENT_DIR', $webroot_dir . Config::get('CONTENT_DIR'));
 Config::define('WP_CONTENT_URL', Config::get('WP_HOME') . Config::get('CONTENT_DIR'));
-Config::define('WP_OEM_DIR', $root_dir . '/src');
+
 /**
  * DB settings
  */
@@ -99,9 +109,10 @@ if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROT
     $_SERVER['HTTPS'] = 'on';
 }
 
-$local_config = __DIR__ . '/wp-config-local.php';
-if (file_exists($local_config)) {
-    require_once $local_config;
+$env_config = __DIR__ . '/environments/' . WP_ENV . '.php';
+
+if (file_exists($env_config)) {
+    require_once $env_config;
 }
 
 Config::apply();
@@ -110,7 +121,5 @@ Config::apply();
  * Bootstrap WordPress
  */
 if (!defined('ABSPATH')) {
-    define('ABSPATH', $webroot_dir . '/wordpress/');
+    define('ABSPATH', $webroot_dir . '/wp/');
 }
-
-require_once ABSPATH . 'wp-settings.php';

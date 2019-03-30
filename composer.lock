@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b8f0481b9a1b5934dd8d2d284802733b",
+    "content-hash": "2098d8e8625e6ebeec4d06291abdc778",
     "packages": [
         {
             "name": "oscarotero/env",
@@ -97,6 +97,35 @@
                 "type"
             ],
             "time": "2015-07-25T16:39:46+00:00"
+        },
+        {
+            "name": "presslabs-stack/wordpress",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "./wordpress",
+                "reference": "3f16b832a9ac3d84dc44e1b5640fd3e3ffae70ac"
+            },
+            "require": {
+                "oscarotero/env": "^1.1.0",
+                "php": ">=7.2",
+                "roots/wordpress-core-installer": ">=1.0.0",
+                "roots/wp-config": "1.0.0",
+                "vlucas/phpdotenv": "^3.0.0"
+            },
+            "type": "wordpress-core",
+            "autoload": {
+                "psr-4": {
+                    "Presslabs\\": "wp-oem/Presslabs/"
+                }
+            },
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "WordPress packaged for Presslabs Stack",
+            "transport-options": {
+                "symlink": true
+            }
         },
         {
             "name": "roots/wordpress-core-installer",
@@ -2335,12 +2364,13 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "presslabs-stack/wordpress": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.1"
+        "php": ">=7.2"
     },
     "platform-dev": []
 }

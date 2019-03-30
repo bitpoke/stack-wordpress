@@ -1,4 +1,19 @@
-/wp-content
+# Application
+web/wp-content/upgrade
+web/wp-content/plugins/*
+!web/wp-content/plugins/.gitkeep
+web/wp-content/mu-plugins/*
+!web/wp-content/mu-plugins/.gitkeep
+web/wp-content/themes/*
+!web/wp-content/themes/.gitkeep
+web/wp-content/uploads/*
+!web/wp-content/uploads/.gitkeep
+
+# WordPress
+web/wp
+web/.htaccess
+
+
 /build
 /vendor
 /.env

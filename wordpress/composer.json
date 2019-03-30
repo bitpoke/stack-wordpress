@@ -7,7 +7,7 @@
     "psr-4": {"Presslabs\\": "wp-oem/Presslabs/"}
   },
   "require": {
-    "php": ">=7.3",
+    "php": ">=7.2",
     "roots/wordpress-core-installer": ">=1.0.0",
     "vlucas/phpdotenv": "^3.0.0",
     "oscarotero/env": "^1.1.0",
