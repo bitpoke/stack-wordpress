@@ -24,5 +24,6 @@ trap finish EXIT
 set -x
 curl -sL -o "$WP_ARCHIVE_FILE" "https://wordpress.org/wordpress-$WP_VERSION.tar.gz"
 tar -zxf "$WP_ARCHIVE_FILE" -C "${WP_TMP_DIR}" --strip-components=1
+cp -a wordpress/composer.json wordpress/wp-oem "${WP_TMP_DIR}"
 rm -rf wordpress
 mv "${WP_TMP_DIR}" "wordpress"

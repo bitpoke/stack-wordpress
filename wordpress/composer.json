@@ -1,0 +1,16 @@
+{
+  "name": "presslabs-stack/wordpress",
+  "description": "WordPress packaged for Presslabs Stack",
+  "type": "wordpress-core",
+  "license": "GPL-2.0-or-later",
+  "autoload": {
+    "psr-4": {"Presslabs\\": "wp-oem/Presslabs/"}
+  },
+  "require": {
+    "php": ">=7.3",
+    "roots/wordpress-core-installer": ">=1.0.0",
+    "vlucas/phpdotenv": "^3.0.0",
+    "oscarotero/env": "^1.1.0",
+    "roots/wp-config": "1.0.0"
+  }
+}
