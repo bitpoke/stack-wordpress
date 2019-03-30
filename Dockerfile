@@ -62,6 +62,7 @@ COPY --chown=www-data:www-data hack/var-www-skel /var/www
 WORKDIR /var/www
 RUN set -ex \
     && composer install --no-ansi --prefer-dist --no-dev \
+    && find html -type f -name '.gitkeep' -delete \
     && rm -rf wordpress .composer
 
 FROM php as wordpress
