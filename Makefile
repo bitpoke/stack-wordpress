@@ -1,4 +1,5 @@
 PHPUNIT ?= $(PWD)/hack/php-noxdebug $(PWD)/vendor/bin/phpunit
+PHPCS ?= $(PWD)/hack/php-noxdebug $(PWD)/vendor/bin/phpcs
 PATCHES = $(shell find $(CURDIR)/patches -type f -name '*.diff')
 
 WP_FILES = $(patsubst wordpress/%,%,$(shell find wordpress -path wordpress/wp-content -prune -o -type f -print))
@@ -21,6 +22,10 @@ patch-verify:
 
 .PHONY: test
 test: test-runtime test-wp
+
+.PHONY: lint
+lint:
+	$(PHPCS)
 
 .PHONY: test-runtime
 test-runtime: wordpress-develop

@@ -3,17 +3,17 @@
     <description>Apply PSR-2 Coding Standards</description>
 
     <rule ref="PSR2">
-        <exclude-pattern>./src/object-cache.php</exclude-pattern>
+        <exclude-pattern>./wordpress/wp-oem/object-cache.php</exclude-pattern>
     </rule>
     <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
-        <exclude-pattern>./src/Presslabs/ObjectCache.php</exclude-pattern>
-        <exclude-pattern>./src/Presslabs/ObjectCache/*</exclude-pattern>
+        <exclude-pattern>./wordpress/wp-oem/Presslabs/ObjectCache.php</exclude-pattern>
+        <exclude-pattern>./wordpress/wp-oem/Presslabs/ObjectCache/*</exclude-pattern>
     </rule>
 
     <arg name="extensions" value="php"/>
 
     <!-- Strip the filepaths down to the relevant bit. -->
-    <arg name="basepath" value="./src"/>
+    <arg name="basepath" value="./wordpress/wp-oem"/>
 
     <!-- Check up to 20 files simultanously. -->
     <arg name="parallel" value="20"/>
@@ -21,7 +21,7 @@
     <!-- Show sniff codes in all reports -->
     <arg value="ps"/>
 
-    <file>./src</file>
+    <file>./wordpress/wp-oem</file>
     <file>./tests</file>
 
     <!-- Directories and third party library exclusions -->

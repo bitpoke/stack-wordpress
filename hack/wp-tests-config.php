@@ -70,7 +70,5 @@ Config::apply();
  * Bootstrap WordPress
  */
 if (!defined('ABSPATH')) {
-    define('ABSPATH', $root_dir. '/wordpress/');
+    define('ABSPATH', $root_dir. '/wordpress-develop/build/');
 }
-
-define('WP_OEM_DIR', $root_dir . '/src');
