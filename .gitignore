@@ -13,6 +13,7 @@ web/wp-content/uploads/*
 web/wp
 web/.htaccess
 
+wordpress/wp-config.php
 
 /build
 /vendor
