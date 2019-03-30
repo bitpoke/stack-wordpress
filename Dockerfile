@@ -7,6 +7,9 @@ ENV PHP_VERSION=${PHP_VERSION}
 ENV COMPOSER_VERSION=1.7.2
 ENV SUPERVISORD_VERSION=0.5
 ENV DOCKERIZE_VERSION=1.2.0
+# https://github.com/grpc/grpc/issues/13412
+ENV GRPC_ENABLE_FORK_SUPPORT=1
+ENV GRPC_POLL_STRATEGY=epoll1
 
 RUN set -ex \
     && apt-get update \
@@ -62,8 +65,13 @@ RUN set -ex \
     && rm -rf wordpress .composer
 
 FROM php as wordpress
-
 ENV WP_HOME=http://localhost:8080
+ENV WP_CLI_VERSION=2.1.0
 
-RUN rm -rf /var/www/html
+USER root
+RUN set -ex \
+    && rm -rf /var/www/html \
+    && /usr/local/docker/build-scripts/install-wp-cli
+
 COPY --from=wordpress-builder --chown=www-data:www-data /var/www /var/www
+USER www-data:www-data
