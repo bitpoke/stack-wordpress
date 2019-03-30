@@ -47,6 +47,6 @@
     ],
     "lint": "phpcs",
     "test": "phpunit",
-    "serve": "WP_HOME=http://localhost:8080 wp server --docroot=./"
+    "serve": "wp server"
   }
 }
