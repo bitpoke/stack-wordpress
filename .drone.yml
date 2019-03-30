@@ -1,0 +1,69 @@
+matrix:
+  include:
+    - PHP_VERSION: 7.3.3
+
+pipeline:
+  publish-php-image:
+    image: plugins/docker
+    registry: quay.io
+    repo: quay.io/presslabs/php-runtime
+    username: presslabs+drone
+    dockerfile: Dockerfile
+    build_args:
+      - PHP_VERSION=${PHP_VERSION}
+    target: php
+    cache_from: quay.io/presslabs/php-runtime:${PHP_VERSION}
+    tags: ["${PHP_VERSION}","${PHP_VERSION}-r${DRONE_BUILD_NUMBER}"]
+    secrets:
+      - source: QUAY_TOKEN
+        target: DOCKER_PASSWORD
+    when:
+      event: push
+      branch:
+        include: ['master', '*-branch']
+
+  # build-php-image:
+  #   image: quay.io/presslabs/php-runtime
+  #   environment:
+  #     - DB_TEST_HOST=database
+  #     - DB_TEST_USER=wordpress
+  #     - DB_TEST_NAME=wordpress_tests
+  #     - DB_TEST_PASSWORD=not-so-secure-but-good-for-ci
+  #     - MEMCACHED_TEST_HOST=memcache:11211
+  #     - UPLOADS_FTP_HOST_TEST=ftp:2121
+  #     # https://github.com/grpc/grpc/issues/13412
+  #     - GRPC_ENABLE_FORK_SUPPORT=1
+  #     - GRPC_POLL_STRATEGY=epoll1
+  #   commands:
+  #     - composer validate -n --no-check-all --no-check-publish \
+  #     - composer -n require --no-ansi --prefer-dist "presslabs-stack/wordpress ${WORDPRESS_VERSION}"
+  #     - make lint
+  #     - make test
+  #     - ./hack/wp-docker-tags.php "${PHP_SERIES_TAG}-r${DRONE_BUILD_NUMBER}" "${PHP_SERIES_TAG}" | tr '\n' ',' | sed 's/,$//' > .tags
+  #   secrets:
+  #     - GOOGLE_CREDENTIALS
+  #   when:
+  #     event: push
+
+
+# services:
+  # database:
+  #   image: percona:5.7
+  #   pull: true
+  #   environment:
+  #     - MYSQL_DATABASE=wordpress_tests
+  #     - MYSQL_USER=wordpress
+  #     - MYSQL_PASSWORD=not-so-secure-but-good-for-ci
+  #     - MYSQL_ROOT_PASSWORD=insecure-root-password-but-good-for-ci
+
+  # memcache:
+  #   image: memcached:1.5.10-alpine
+
+  # ftp:
+  #   image: quay.io/presslabs/rclone
+  #   command: serve ftp / --addr=0.0.0.0:2121
+  #   healthcheck:
+  #     test: ["CMD", "nc", "127.0.0.1", "2121"]
+  #     interval: 2s
+  #     timeout: 10s
+  #     retries: 5
