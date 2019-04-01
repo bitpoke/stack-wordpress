@@ -40,7 +40,10 @@
       - "libxslt-dev"
 - name: zip
   build:
+    args:
+      - "--with-libzip=/usr/include/"
     depends:
+      - "libzip-dev"
       - "zlib1g-dev"
 
 #
