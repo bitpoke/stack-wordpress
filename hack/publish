@@ -1,0 +1,63 @@
+#!/bin/bash
+set -eo pipefail
+
+DEFAULT_BRANCH="5.1-branch"
+UPSTREAM=${RELEASE_UPSTREAM:-https://github.com/presslabs/stack-wordpress-release}
+WORDPRESS_PREFIX=${WORDPRESS_PREFIX:-wordpress}
+
+print_usage() {
+    echo "publish branch|tag version" >&2
+}
+
+if [[ -z "$1" || "$1" == "-h" || -z "$2" ]] ; then
+    print_usage
+    exit 1
+fi
+
+publish_branch() {
+    branch=${1:-$DEFAULT_BRANCH}
+    remote_branch=${branch%"-branch"}
+
+    has_remote=$(git ls-remote --heads "${UPSTREAM}" "${remote_branch}")
+    if [[ -z $has_remote ]] ; then
+        git subtree push --prefix="${WORDPRESS_PREFIX}" "${UPSTREAM}" "${remote_branch}"
+    else
+        subtree=$(git subtree split --prefix="${WORDPRESS_PREFIX}" "${branch}")
+        git push "${UPSTREAM}" --force "${subtree}":"${remote_branch}"
+    fi
+}
+
+publish_tag() {
+    tag="$1"
+
+    git subtree split --prefix="${WORDPRESS_PREFIX}" -b "branch_${tag}"
+
+    git checkout "branch_${tag}"
+
+    commit=$(git show -s HEAD --pretty="format:%h")
+    message=$(git for-each-ref refs/tags/"$tag" --format='%(contents)')
+    meta="git-tag-source: $UPSTREAM@$commit"
+
+    if [[ -z "$message" ]] ; then
+        message="$meta"
+    else
+        message="$(echo -e "$message\\n\\n$meta")"
+    fi
+
+    git tag -a "tag_$tag" -m "$message"
+    git push "${UPSTREAM}" --force "tag_$tag":"${tag}"
+}
+
+case $1 in
+    branch)
+      publish_branch $2
+      ;;
+
+    tag)
+      publish_tag $2
+      ;;
+
+    *)
+      print_usage
+      exit
+esac
