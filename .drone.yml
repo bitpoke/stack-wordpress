@@ -71,7 +71,7 @@ pipeline:
       branch:
         include: ['*-branch']
 
-  publish-composer-package-branch:
+  publish-composer-package:
     image: quay.io/presslabs/bfc
     environment:
       - GIT_USER=presslabs-bot
@@ -80,13 +80,13 @@ pipeline:
     secrets: [GIT_PASSWORD]
     commands:
       - setup-credentials-helper.sh
-      - ./hack/publish branch ${DRONE_BRANCH}
+      - ./hack/publish branch ${DRONE_BRANCH%%-branch}
     when:
       event: push
       branch:
         include: ['*-branch']
 
-  publish-composer-package-tag:
+  publish-composer-package:
     image: quay.io/presslabs/bfc
     environment:
       - GIT_USER=presslabs-bot
