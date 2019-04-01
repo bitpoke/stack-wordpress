@@ -1,6 +1,6 @@
 matrix:
   include:
-    - PHP_VERSION: 7.2.16
+    - PHP_VERSION: 7.3.3
 
 pipeline:
   chown: # we need to do this since our test container runs with www-data and drone clones with root
