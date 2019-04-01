@@ -2,6 +2,11 @@ matrix:
   include:
     - PHP_VERSION: 7.3.3
 
+clone:
+  git:
+    image: plugins/git
+    tags: true
+
 pipeline:
   chown: # we need to do this since our test container runs with www-data and drone clones with root
     image: debian:stretch-slim
@@ -65,6 +70,34 @@ pipeline:
       event: push
       branch:
         include: ['*-branch']
+
+  publish-composer-package-branch:
+    image: quay.io/presslabs/bfc
+    environment:
+      - GIT_USER=presslabs-bot
+      - GIT_EMAIL=bot@presslabs.com
+      - RELEASE_UPSTREAM=https://github.com/presslabs/stack-wordpress-release
+    secrets: [GIT_PASSWORD]
+    commands:
+      - setup-credentials-helper.sh
+      - ./hack/publish branch ${DRONE_BRANCH}
+    when:
+      event: push
+      branch:
+        include: ['*-branch']
+
+  publish-composer-package-tag:
+    image: quay.io/presslabs/bfc
+    environment:
+      - GIT_USER=presslabs-bot
+      - GIT_EMAIL=bot@presslabs.com
+      - RELEASE_UPSTREAM=https://github.com/presslabs/stack-wordpress-release
+    secrets: [GIT_PASSWORD]
+    commands:
+      - setup-credentials-helper.sh
+      - ./hack/publish tag ${DRONE_TAG}
+    when:
+      event: tag
 
 services:
   database:
