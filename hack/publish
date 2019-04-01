@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-DEFAULT_BRANCH="5.1-branch"
 UPSTREAM=${RELEASE_UPSTREAM:-https://github.com/presslabs/stack-wordpress-release}
 WORDPRESS_PREFIX=${WORDPRESS_PREFIX:-wordpress}
 
@@ -15,16 +14,15 @@ if [[ -z "$1" || "$1" == "-h" || -z "$2" ]] ; then
 fi
 
 publish_branch() {
-    branch=${1:-$DEFAULT_BRANCH}
-    remote_branch=${branch%"-branch"}
+    remote_branch="refs/heads/$1"
+    subtree=$(git subtree split --prefix="${WORDPRESS_PREFIX}" HEAD)
 
     has_remote=$(git ls-remote --heads "${UPSTREAM}" "${remote_branch}")
-    if [[ -z $has_remote ]] ; then
-        git subtree push --prefix="${WORDPRESS_PREFIX}" "${UPSTREAM}" "${remote_branch}"
-    else
-        subtree=$(git subtree split --prefix="${WORDPRESS_PREFIX}" "${branch}")
-        git push "${UPSTREAM}" --force "${subtree}":"${remote_branch}"
+    git_push="git push"
+    if [[ -n "$has_remote" ]] ; then
+        git_push="git push --force"
     fi
+    $git_push "${UPSTREAM}" "${subtree}":"${remote_branch}"
 }
 
 publish_tag() {
@@ -45,16 +43,17 @@ publish_tag() {
     fi
 
     git tag -a "tag_$tag" -m "$message"
-    git push "${UPSTREAM}" --force "tag_$tag":"${tag}"
+    git push "${UPSTREAM}" --force "tag_${tag}:${tag}"
 }
 
+set -x
 case $1 in
     branch)
-      publish_branch $2
+      publish_branch "$2"
       ;;
 
     tag)
-      publish_tag $2
+      publish_tag "$2"
       ;;
 
     *)
