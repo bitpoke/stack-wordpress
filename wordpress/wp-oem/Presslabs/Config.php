@@ -11,7 +11,7 @@ class Config
             return;
         }
 
-        self::defineFromEnv("MEMCACHED_HOST", "127.0.0.1:11211");
+        self::defineFromEnv("MEMCACHED_HOST", "");
         self::defineFromEnv("MEMCACHED_DISCOVERY_HOST", "");
 
         self::defineFromEnv("UPLOADS_FTP_HOST", "");
