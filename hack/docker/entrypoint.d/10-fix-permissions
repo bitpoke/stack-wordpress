@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -e
-set -o pipefail
 
-test -d "${DOCUMENT_ROOT:-/var/www/site/web}" || mkdir -p "${DOCUMENT_ROOT:-/var/www/site/web}"
-chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/site/web}" || true
+mkdir -p "${DOCUMENT_ROOT:-/var/www/html}"
+chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/html}"
 
-test -d "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content" || mkdir -p "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content"
-chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content" || true
+mkdir -p "${DOCUMENT_ROOT:-/var/www/html}/wp-content"
+chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/html}/wp-content"
 
 for d in themes plugins mu-plugins uploads upgrade ; do
-    test -d "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content/$d" || mkdir -p "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content/$d"
-    chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/site/web}/wp-content/$d" || true
+    mkdir -p "${DOCUMENT_ROOT:-/var/www/html}/wp-content/$d"
+    chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/html}/wp-content/$d"
 done
+
+exit 0
