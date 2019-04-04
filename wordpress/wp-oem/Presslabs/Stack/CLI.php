@@ -125,10 +125,11 @@ EOF;
 
     private function dockerignore()
     {
-        // TODO: sensible dockerignore
         return <<<EOF
+.git
+*.md
 skaffold.yaml
-.env
+.env*
 EOF;
     }
 
