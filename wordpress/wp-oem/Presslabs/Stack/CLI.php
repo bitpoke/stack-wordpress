@@ -39,6 +39,10 @@ class CLI
         return $webroot;
     }
 
+    private function exists(string $path) {
+        return file_exists(SKAFFOLD_DIR . '/' . $path);
+    }
+
     private function writeFile(string $path,  string $content)
     {
         if (! file_exists(SKAFFOLD_DIR)) {
@@ -140,9 +144,29 @@ EOF;
      *
      * @when after_wp_load
      */
-    public function init()
+    public function init($args, $assoc_args)
     {
-        // TODO: implement force
+        if (! count($assoc_args)) {
+            $requirements = array('Dockerfile', 'skaffold.yaml', '.dockerignore',
+                                  'chart/', 'chart/values.yaml');
+            $found = array();
+            foreach ($requirements as $requirement) {
+                if (file_exists(SKAFFOLD_DIR . '/' . $requirement)) {
+                    array_push($found, $requirement);
+                }
+            }
+
+            if (count($found)) {
+                echo "❌ Found existing " . join(", ", $found) . " files.\n";
+                echo "Do you want to overwrite them? [y/N]";
+
+                $response = trim(fgets(STDIN)) ?: 'N';
+                if (strtoupper($response) == 'N') {
+                    WP_CLI::success("🙌 Stack initialized successfuly!");
+                    return;
+                }
+            }
+        }
 
         $webroot = $this->relativeWebroot();
         WP_CLI::log("🔍 Detected webroot in $webroot");
