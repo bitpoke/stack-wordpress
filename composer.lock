@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2fbdd8b9c221e104e0079b93e52fdbd9",
+    "content-hash": "c1b52e6d4f376188d1ec0cabfc6a9d66",
     "packages": [
         {
             "name": "oscarotero/env",
@@ -101,11 +101,11 @@
         },
         {
             "name": "presslabs-stack/wordpress",
-            "version": "dev-stack-cli",
+            "version": "dev-5.1-branch",
             "dist": {
                 "type": "path",
                 "url": "./wordpress",
-                "reference": "6d6900c1c055ab6cf7e1b2f4cc20fde505b6dcef"
+                "reference": "a984e66305c2195458535c78003d8578ee4f41d0"
             },
             "require": {
                 "oscarotero/env": "^1.1.0",
@@ -113,6 +113,10 @@
                 "roots/wordpress-core-installer": ">=1.0.0",
                 "roots/wp-config": "1.0.0",
                 "vlucas/phpdotenv": "^3.0.0"
+            },
+            "conflict": {
+                "johnpbloch/wordpress": "*",
+                "roots/wordpress": "*"
             },
             "type": "wordpress-core",
             "autoload": {

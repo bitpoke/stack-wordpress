@@ -20,7 +20,7 @@
   ],
   "require": {
     "php": ">=7.2",
-    "presslabs-stack/wordpress": "@dev"
+    "presslabs-stack/wordpress": "self.version"
   },
   "require-dev": {
     "phpunit/phpunit": "^6.5",
