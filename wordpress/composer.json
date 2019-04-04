@@ -7,6 +7,10 @@
     "psr-4": {"Presslabs\\": "wp-oem/Presslabs/"},
     "files": ["wp-oem/bootstrap.php"]
   },
+  "conflict": {
+    "roots/wordpress": "*",
+    "johnpbloch/wordpress": "*"
+  },
   "require": {
     "php": ">=7.2",
     "roots/wordpress-core-installer": ">=1.0.0",
