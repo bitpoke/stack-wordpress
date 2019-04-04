@@ -82,6 +82,8 @@ class CLI
         return <<<EOF
 site:
   domains: [$domains]
+image:
+  repository: presslabs-stack/$release
 EOF;
     }
 
