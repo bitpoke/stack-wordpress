@@ -77,8 +77,10 @@ class CLI
         unlink(SKAFFOLD_DIR . '/chart.tgz');
     }
 
-    private function chartValues(array $domains = null) {
+    private function chartValues(array $domains = null, string $release = null) {
         $domains = join(", ", $domains);
+        $release = $release ?: RELEASE;
+
         return <<<EOF
 site:
   domains: [$domains]
