@@ -2,6 +2,7 @@
 namespace Presslabs\Stack;
 
 use \WP_CLI;
+use \WP_CLI_Command;
 
 define('RELEASE', basename(getcwd()));
 define('SKAFFOLD_DIR', getcwd());
@@ -12,7 +13,7 @@ define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpre
 /**
  * Manage Presslabs Stack enabled WordPress projects
  */
-class CLI
+class CLI extends WP_CLI_Command
 {
     public static function load()
     {
@@ -49,7 +50,7 @@ class CLI
             mkdir(SKAFFOLD_DIR);
         }
 
-        $path = path_join(SKAFFOLD_DIR, $path);
+        $path = SKAFFOLD_DIR . "/" . $path;
 
         $fp = fopen($path, 'w');
         fwrite($fp, $content);
@@ -58,23 +59,23 @@ class CLI
 
     private function chartArchive()
     {
-        $response = wp_remote_get(CHART_URL);
-
-        if (! is_array($response)) {
-            WP_CLI::error("Couldn't download site chart archive from " . CHART_URL);
-            return;
+        if (!file_exists(SKAFFOLD_DIR)) {
+            mkdir(SKAFFOLD_DIR);
+        }
+        if (!@copy(CHART_URL, SKAFFOLD_DIR . '/chart.tar.gz')) {
+            $err = error_get_last();
+            WP_CLI::error($err["message"], true);
         }
 
-        $this->writeFile('chart.tgz', $response['body']);
 
         if (! file_exists(CHART_PATH)) {
             mkdir(CHART_PATH);
         }
 
-        $phar = new \PharData(SKAFFOLD_DIR . '/chart.tgz');
+        $phar = new \PharData(SKAFFOLD_DIR . '/chart.tar.gz');
         $phar->extractTo(CHART_PATH, null, true);
 
-        unlink(SKAFFOLD_DIR . '/chart.tgz');
+        unlink(SKAFFOLD_DIR . '/chart.tar.gz');
     }
 
     private function skaffold(array $domains = null, string $release = '')
@@ -145,7 +146,7 @@ EOF;
      *
      *     wp stack init
      *
-     * @when before_wp_load
+     * @when after_wp_config_load
      */
     public function init($args, $assoc_args)
     {

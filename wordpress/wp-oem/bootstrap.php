@@ -1,2 +1,5 @@
 <?php
-// This file is required by composer autoloader, thus is loaded before WordPress is bootstrapped.
+if (defined('WP_CLI') && WP_CLI) {
+    // load stack wp-cli
+    Presslabs\Stack\CLI::load();
+}
