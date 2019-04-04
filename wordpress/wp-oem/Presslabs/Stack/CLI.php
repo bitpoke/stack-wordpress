@@ -3,6 +3,11 @@ namespace Presslabs\Stack;
 
 use \WP_CLI;
 
+define('RELEASE', basename(getcwd()));
+define('SKAFFOLD_DIR', getcwd());
+define('CHART_PATH', SKAFFOLD_DIR . '/chart/');
+define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpress-site-v0.1.5.tgz');
+
 /**
  * Manage Presslabs Stack enabled WordPress projects
  */
@@ -33,6 +38,68 @@ class CLI
         return $webroot;
     }
 
+    private function writeFile(string $path,  string $content)
+    {
+        if (! file_exists(SKAFFOLD_DIR)) {
+            mkdir(SKAFFOLD_DIR);
+        }
+
+        $path = path_join(SKAFFOLD_DIR, $path);
+
+        $fp = fopen($path, 'w');
+        fwrite($fp, $content);
+        fclose($fp);
+    }
+
+    private function chartArchive()
+    {
+        $response = wp_remote_get(CHART_URL);
+
+        if (! is_array($response)) {
+            WP_CLI::error("Couldn't download site chart archive from " . CHART_URL);
+            return;
+        }
+
+        $this->writeFile('chart.tgz', $response['body']);
+
+        if (! file_exists(CHART_PATH)) {
+            mkdir(CHART_PATH);
+        }
+
+        $phar = new \PharData(SKAFFOLD_DIR . '/chart.tgz');
+        $phar->extractTo(CHART_PATH, null, true);
+
+        unlink(SKAFFOLD_DIR . '/chart.tgz');
+    }
+
+    private function chartValues(array $domains) {
+        // TODO: get domains from cli as arguments
+        $domains = join(", ", $domains ?: array('test.local.wp'));
+        return <<<EOF
+site:
+  domains: [$domains]
+EOF;
+    }
+
+    private function skaffold(string $release = '')
+    {
+        $release = $release ?: RELEASE;
+
+        return <<<EOF
+apiVersion: skaffold/v1beta7
+kind: Config
+build:
+  artifacts:
+  - image: presslabs-stack/$release
+deploy:
+  helm:
+    releases:
+    - name: $release
+      chartPath: wordpress-site
+      valuesFiles: ['chart/values.yaml']
+EOF;
+    }
+
     private function dockerfile(string $webroot = "")
     {
         $webroot = $webroot ?: $this->relativeWebroot();
@@ -50,6 +117,15 @@ COPY --from=builder /var/www /var/www
 EOF;
     }
 
+    private function dockerignore()
+    {
+        // TODO: sensible dockerignore
+        return <<<EOF
+skaffold.yaml
+.env
+EOF;
+    }
+
     /**
      * Initializes Presslabs Stack for a project
      *
@@ -64,8 +140,18 @@ EOF;
      */
     public function init()
     {
+        // TODO: implement force
+
         $webroot = $this->relativeWebroot();
         WP_CLI::log("Detected webroot in $webroot");
-        WP_CLI::success($dockerfile);
+
+        $this->writeFile('Dockerfile', $this->dockerfile());
+        $this->writeFile('skaffold.yaml', $this->skaffold());
+        $this->writeFile('.dockerignore', $this->dockerignore());
+
+        $this->chartArchive();
+        $this->writeFile('chart/values.yaml', $this->chartValues());
+
+        WP_CLI::success('Stack initialized successfuly');
     }
 }
