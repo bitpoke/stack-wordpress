@@ -77,22 +77,15 @@ class CLI
         unlink(SKAFFOLD_DIR . '/chart.tgz');
     }
 
-    private function chartValues(array $domains = null, string $release = null) {
-        $domains = join(", ", $domains);
-        $release = $release ?: RELEASE;
-
-        return <<<EOF
-site:
-  domains: [$domains]
-image:
-  repository: presslabs-stack/$release
-EOF;
-    }
-
-    private function skaffold(string $release = '')
+    private function skaffold(array $domains = null, string $release = '')
     {
         $release = $release ?: RELEASE;
         $chartPath = CHART_PATH . '/wordpress-site';
+
+        $domainsValues = "";
+        foreach($domains as $count => $domain) {
+            $domainsValues = $domainsValues . "\n        \"site.domain.[$count]\": $domain";
+        }
 
         return <<<EOF
 apiVersion: skaffold/v1beta7
@@ -105,7 +98,12 @@ deploy:
     releases:
     - name: $release
       chartPath: $chartPath
-      valuesFiles: ['chart/values.yaml']
+      values:
+        image: presslabs-stack/$release
+      setValues:$domainsValues
+      skipBuildDependencies: false
+      imageStrategy:
+        helm: {}
 EOF;
     }
 
@@ -147,7 +145,7 @@ EOF;
      *
      *     wp stack init
      *
-     * @when after_wp_load
+     * @when before_wp_load
      */
     public function init($args, $assoc_args)
     {
@@ -176,20 +174,19 @@ EOF;
         $webroot = $this->relativeWebroot();
         WP_CLI::log("🔍 Detected webroot in $webroot");
 
+        echo "Input your site's domains, separated by comma [" . DEFAULT_DOMAIN . "]: ";
+        $rawDomains = trim(fgets(STDIN)) ?: DEFAULT_DOMAIN;
+        $domains = explode(',', $rawDomains);
+
         $this->writeFile('Dockerfile', $this->dockerfile());
         WP_CLI::log("📋 Dockerfile created");
-        $this->writeFile('skaffold.yaml', $this->skaffold());
+        $this->writeFile('skaffold.yaml', $this->skaffold($domains));
         WP_CLI::log("📋 skaffold.yaml created");
         $this->writeFile('.dockerignore', $this->dockerignore());
         WP_CLI::log("📋 .dockerignore created");
 
         $this->chartArchive();
         WP_CLI::log("📋 chart/ crated");
-
-        echo "Input your site's domains, separated by comma [" . DEFAULT_DOMAIN . "]: ";
-        $rawDomains = trim(fgets(STDIN)) ?: DEFAULT_DOMAIN;
-        $this->writeFile('chart/values.yaml', $this->chartValues(explode(',', $rawDomains)));
-        WP_CLI::log("📋 chart/values.yaml crated");
 
         WP_CLI::success("🙌 Stack initialized successfuly!");
     }
