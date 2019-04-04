@@ -4,7 +4,8 @@
   "type": "wordpress-core",
   "license": "GPL-2.0-or-later",
   "autoload": {
-    "psr-4": {"Presslabs\\": "wp-oem/Presslabs/"}
+    "psr-4": {"Presslabs\\": "wp-oem/Presslabs/"},
+    "files": ["wp-oem/bootstrap.php"]
   },
   "require": {
     "php": ">=7.2",
