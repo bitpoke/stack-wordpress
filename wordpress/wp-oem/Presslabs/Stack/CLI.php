@@ -6,8 +6,8 @@ use \WP_CLI_Command;
 
 define('RELEASE', basename(getcwd()));
 define('SKAFFOLD_DIR', getcwd());
-define('DEFAULT_DOMAIN', 'test.local.wp');
-define('CHART_PATH', SKAFFOLD_DIR . '/chart/');
+define('DEFAULT_DOMAIN', RELEASE . '.localstack.pl');
+define('CHART_PATH', SKAFFOLD_DIR . '/chart');
 define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpress-site-v0.1.5.tgz');
 
 /**
@@ -40,11 +40,12 @@ class CLI extends WP_CLI_Command
         return $webroot;
     }
 
-    private function exists(string $path) {
+    private function exists(string $path)
+    {
         return file_exists(SKAFFOLD_DIR . '/' . $path);
     }
 
-    private function writeFile(string $path,  string $content)
+    private function writeFile(string $path, string $content)
     {
         if (! file_exists(SKAFFOLD_DIR)) {
             mkdir(SKAFFOLD_DIR);
@@ -78,13 +79,13 @@ class CLI extends WP_CLI_Command
         unlink(SKAFFOLD_DIR . '/chart.tar.gz');
     }
 
-    private function skaffold(array $domains = null, string $release = '')
+    private function skaffold(array $domains, string $dockerImage, string $release = '')
     {
         $release = $release ?: RELEASE;
         $chartPath = CHART_PATH . '/wordpress-site';
 
         $domainsValues = "";
-        foreach($domains as $count => $domain) {
+        foreach ($domains as $count => $domain) {
             $domainsValues = $domainsValues . "\n        \"site.domain.[$count]\": $domain";
         }
 
@@ -93,14 +94,14 @@ apiVersion: skaffold/v1beta7
 kind: Config
 build:
   artifacts:
-  - image: presslabs-stack/$release
+  - image: $dockerImage
 deploy:
   helm:
     releases:
     - name: $release
       chartPath: $chartPath
       values:
-        image: presslabs-stack/$release
+        image: $dockerImage
       setValues:$domainsValues
       skipBuildDependencies: false
       imageStrategy:
@@ -152,7 +153,7 @@ EOF;
     {
         if (! count($assoc_args)) {
             $requirements = array('Dockerfile', 'skaffold.yaml', '.dockerignore',
-                                  'chart/', 'chart/values.yaml');
+                                  'chart/');
             $found = array();
             foreach ($requirements as $requirement) {
                 if (file_exists(SKAFFOLD_DIR . '/' . $requirement)) {
@@ -179,9 +180,15 @@ EOF;
         $rawDomains = trim(fgets(STDIN)) ?: DEFAULT_DOMAIN;
         $domains = explode(',', $rawDomains);
 
+        echo "Docker image repository (eg. docker.io/USERNAME/". RELEASE ."): ";
+        $dockerImage = trim(fgets(STDIN));
+        if (empty($dockerImage)) {
+            WP_CLI::error("You must specify a docker image repository!", true);
+        }
+
         $this->writeFile('Dockerfile', $this->dockerfile());
         WP_CLI::log("📋 Dockerfile created");
-        $this->writeFile('skaffold.yaml', $this->skaffold($domains));
+        $this->writeFile('skaffold.yaml', $this->skaffold($domains, $dockerImage));
         WP_CLI::log("📋 skaffold.yaml created");
         $this->writeFile('.dockerignore', $this->dockerignore());
         WP_CLI::log("📋 .dockerignore created");
