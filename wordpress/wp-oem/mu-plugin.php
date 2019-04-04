@@ -20,8 +20,3 @@ if (!defined('WP_DEFAULT_THEME')) {
 if (defined('UPLOADS_FTP_HOST') && UPLOADS_FTP_HOST != "") {
     new Presslabs\FTPStorage(UPLOADS_FTP_HOST);
 }
-
-if (defined('WP_CLI') && WP_CLI) {
-    // load stack wp-cli
-    Presslabs\Stack\CLI::load();
-}
