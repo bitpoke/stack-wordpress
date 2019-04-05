@@ -7,7 +7,7 @@ use \WP_CLI_Command;
 define('RELEASE', basename(getcwd()));
 define('SKAFFOLD_DIR', getcwd());
 define('DEFAULT_DOMAIN', RELEASE . '.localstack.pl');
-define('CHART_PATH', SKAFFOLD_DIR . '/chart');
+define('CHART_DIR', 'chart');
 define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpress-site-v0.1.6.tgz');
 define('DEFAULT_PROD_KUBECONFIG_CONTEXT', 'default');
 /**
@@ -69,12 +69,12 @@ class CLI extends WP_CLI_Command
         }
 
 
-        if (! file_exists(CHART_PATH)) {
-            mkdir(CHART_PATH);
+        if (! file_exists(SKAFFOLD_DIR . '/' . CHART_DIR)) {
+            mkdir(SKAFFOLD_DIR . '/' . CHART_DIR);
         }
 
         $phar = new \PharData(SKAFFOLD_DIR . '/chart.tar.gz');
-        $phar->extractTo(CHART_PATH, null, true);
+        $phar->extractTo(SKAFFOLD_DIR . '/' . CHART_DIR, null, true);
 
         unlink(SKAFFOLD_DIR . '/chart.tar.gz');
     }
@@ -82,7 +82,7 @@ class CLI extends WP_CLI_Command
     private function skaffold(string $devDomain, string $prodDomain, string $dockerImage, string $prodKubeConfig)
     {
         $release = RELEASE;
-        $chartPath = CHART_PATH . '/wordpress-site';
+        $chartPath = CHART_DIR . '/wordpress-site';
 
         return <<<EOF
 apiVersion: skaffold/v1beta7
