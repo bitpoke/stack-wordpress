@@ -8,8 +8,8 @@ define('RELEASE', basename(getcwd()));
 define('SKAFFOLD_DIR', getcwd());
 define('DEFAULT_DOMAIN', RELEASE . '.localstack.pl');
 define('CHART_PATH', SKAFFOLD_DIR . '/chart');
-define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpress-site-v0.1.5.tgz');
-
+define('CHART_URL', 'https://github.com/presslabs/charts/raw/master/docs/wordpress-site-v0.1.6.tgz');
+define('DEFAULT_PROD_KUBECONFIG_CONTEXT', 'default');
 /**
  * Manage Presslabs Stack enabled WordPress projects
  */
@@ -79,15 +79,10 @@ class CLI extends WP_CLI_Command
         unlink(SKAFFOLD_DIR . '/chart.tar.gz');
     }
 
-    private function skaffold(array $domains, string $dockerImage, string $release = '')
+    private function skaffold(string $devDomain, string $prodDomain, string $dockerImage, string $prodKubeConfig)
     {
-        $release = $release ?: RELEASE;
+        $release = RELEASE;
         $chartPath = CHART_PATH . '/wordpress-site';
-
-        $domainsValues = "";
-        foreach ($domains as $count => $domain) {
-            $domainsValues = $domainsValues . "\n        \"site.domain.[$count]\": $domain";
-        }
 
         return <<<EOF
 apiVersion: skaffold/v1beta7
@@ -98,14 +93,27 @@ build:
 deploy:
   helm:
     releases:
-    - name: $release
+    - name: dev-$release
       chartPath: $chartPath
       values:
         image: $dockerImage
-      setValues:$domainsValues
+      setValues:
+        site.domains[0]: $devDomain
       skipBuildDependencies: false
       imageStrategy:
         helm: {}
+profiles:
+  - name: production
+    activation:
+      - command: deploy
+        kubeContext: $prodKubeConfig
+    patches:
+      - op: replace
+        path: /deploy/helm/releases/0/name
+        value: $release
+      - op: replace
+        path: /deploy/helm/releases/0/setValues/site.domains[0]
+        value: $prodDomain
 EOF;
     }
 
@@ -176,19 +184,24 @@ EOF;
         $webroot = $this->relativeWebroot();
         WP_CLI::log("🔍 Detected webroot in $webroot");
 
-        echo "Input your site's domains, separated by comma [" . DEFAULT_DOMAIN . "]: ";
-        $rawDomains = trim(fgets(STDIN)) ?: DEFAULT_DOMAIN;
-        $domains = explode(',', $rawDomains);
-
         echo "Docker image repository (eg. docker.io/USERNAME/". RELEASE ."): ";
         $dockerImage = trim(fgets(STDIN));
         if (empty($dockerImage)) {
             WP_CLI::error("You must specify a docker image repository!", true);
         }
 
+        echo "Your site's DEVELOPMENT domain [" . DEFAULT_DOMAIN . "]: ";
+        $devDomain = trim(fgets(STDIN)) ?: DEFAULT_DOMAIN;
+
+        echo "Your site's PRODUCTION domain [" . $devDomain . "]: ";
+        $prodDomain = trim(fgets(STDIN)) ?: $devDomain;
+
+        echo "Your site's PRODUCTION kubeconfing context [" . DEFAULT_PROD_KUBECONFIG_CONTEXT . "]: ";
+        $prodKubeContext = trim(fgets(STDIN)) ?: DEFAULT_PROD_KUBECONFIG_CONTEXT;
+
         $this->writeFile('Dockerfile', $this->dockerfile());
         WP_CLI::log("📋 Dockerfile created");
-        $this->writeFile('skaffold.yaml', $this->skaffold($domains, $dockerImage));
+        $this->writeFile('skaffold.yaml', $this->skaffold($devDomain, $prodDomain, $dockerImage, $prodKubeContext));
         WP_CLI::log("📋 skaffold.yaml created");
         $this->writeFile('.dockerignore', $this->dockerignore());
         WP_CLI::log("📋 .dockerignore created");
