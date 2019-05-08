@@ -26,19 +26,26 @@ class Memcached implements \Presslabs\ObjectCache
     public $cache = array();
 
     /**
+     * List of key/groups to preload
+     *
+     * @var array
+     */
+    public $preload = array();
+
+    /**
      * List of global groups.
      *
      * @var array
      */
-    public $global_groups = array( 'users', 'userlogins', 'usermeta', 'site-options', 'site-lookup', 'blog-lookup',
-                                   'blog-details', 'rss' );
+    public $global_groups = array('users', 'userlogins', 'usermeta', 'site-options', 'site-lookup', 'blog-lookup',
+                                  'blog-details', 'rss', 'object-cache-preload');
 
     /**
      * List of groups not saved to Memcached.
      *
      * @var array
      */
-    public $no_mc_groups = array( 'comment', 'counts' );
+    public $no_mc_groups = array('comment', 'counts');
 
     /**
      * Prefix used for global groups.
@@ -56,6 +63,9 @@ class Memcached implements \Presslabs\ObjectCache
 
     private static $updated_options = array();
 
+    private $stats = array();
+    private $request_hash = '';
+
     /**
      * Instantiate the Memcached class.
      *
@@ -69,6 +79,7 @@ class Memcached implements \Presslabs\ObjectCache
      */
     public function __construct($persistent_id = null)
     {
+
         global $blog_id, $table_prefix;
 
         \add_action('add_option', __NAMESPACE__ . '\\Memcached::mark_updated_option');
@@ -134,6 +145,23 @@ class Memcached implements \Presslabs\ObjectCache
         if (\Memcached::HAVE_IGBINARY) {
             $this->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_IGBINARY);
         }
+
+        $this->initStats();
+        $this->preloadCache();
+    }
+
+    private function initStats()
+    {
+        foreach (array('get', 'set', 'delete', 'multi_get') as $action) {
+            $this->stats[$action] = 0;
+            $this->stats["mc_$action"] = 0;
+        }
+    }
+
+    public function close()
+    {
+        $this->updatePreloadKeys();
+        $this->cache = array();
     }
 
     public static function mark_updated_option($option)
@@ -146,6 +174,47 @@ class Memcached implements \Presslabs\ObjectCache
         }
     }
 
+    private function preloadCache()
+    {
+        if ((defined('WP_CLI') && WP_CLI) || (defined('DOING_CRON') && DOING_CRON)) {
+            return;
+        }
+
+        $this->request_hash = md5(json_encode(array(
+            $_SERVER['HTTP_HOST'],
+            $_SERVER['REQUEST_URI'],
+        )));
+
+        $preload = $this->get($this->request_hash, 'object-cache-preload', true);
+        if (is_array($preload)) {
+            $this->preload = $preload;
+        } else {
+            $this->preload = array();
+        }
+
+        if (!array_key_exists('options', $this->preload)) {
+            $this->preload['options'] = array();
+        }
+        $this->preload['options']['alloptions'] = true;
+
+        $groups = array();
+        $keys = array();
+        foreach ($this->preload as $group => $groupKeys) {
+            foreach ($groupKeys as $key => $_) {
+                $groups[] = $group;
+                $keys[] = $key;
+            }
+        }
+        $this->getMulti($keys, $groups);
+    }
+
+    public function updatePreloadKeys()
+    {
+        if ($this->request_hash) {
+            $this->set($this->request_hash, $this->preload, 'object-cache-preload');
+        }
+        $this->preload = array();
+    }
 
     /**
      * Adds a value to cache.
@@ -494,6 +563,9 @@ class Memcached implements \Presslabs\ObjectCache
     {
         $derived_key = $this->buildKey($key, $group);
 
+        if (array_key_exists($group, $this->preload) && array_key_exists($key, $this->preload[$group])) {
+            unset($this->preload[$group][$key]);
+        }
         // Remove from no_mc_groups array
         if (in_array($group, $this->no_mc_groups)) {
             if (isset($this->cache[$derived_key])) {
@@ -576,6 +648,7 @@ class Memcached implements \Presslabs\ObjectCache
         // Only reset the runtime cache if memcached was properly flushed
         if (\Memcached::RES_SUCCESS === $this->getResultCode()) {
             $this->cache = array();
+            $this->preload = array();
         }
 
         return $result;
@@ -613,8 +686,17 @@ class Memcached implements \Presslabs\ObjectCache
         // Assume object is not found
         $found = false;
 
+        ++$this->stats['get'];
+        if ($group != 'object-cache-preload' && !in_array($group, $this->no_mc_groups)) {
+            if (!array_key_exists($group, $this->preload)) {
+                $this->preload[$group] = array();
+            }
+            $this->preload[$group][$key] = true;
+        }
+
         // If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
         if (func_num_args() > 6 && ! in_array($group, $this->no_mc_groups)) {
+            ++$this->stats['mc_get'];
             if ($byKey) {
                 if (defined('\Memcached::GET_EXTENDED')) {
                     $v = $this->m->getByKey($server_key, $derived_key, $cache_cb, \Memcached::GET_EXTENDED);
@@ -645,6 +727,7 @@ class Memcached implements \Presslabs\ObjectCache
             } elseif (in_array($group, $this->no_mc_groups)) {
                 return false;
             } else {
+                ++$this->stats['mc_get'];
                 if ($byKey) {
                     $value = $this->m->getByKey($server_key, $derived_key);
                 } else {
@@ -752,6 +835,7 @@ class Memcached implements \Presslabs\ObjectCache
     public function getMulti($keys, $groups = 'default', $server_key = '', &$cas_tokens = null, $flags = null)
     {
         $derived_keys = $this->buildKeys($keys, $groups);
+        ++$this->stats['multi_get'];
 
         /**
          * If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache. Note that
@@ -779,6 +863,7 @@ class Memcached implements \Presslabs\ObjectCache
 
             // Get those keys not found in the runtime cache
             if (! empty($need_to_get)) {
+                ++$this->stats['mc_multi_get'];
                 if (! empty($server_key)) {
                     $result = $this->m->getMultiByKey($server_key, array_keys($need_to_get));
                 } else {
@@ -1173,6 +1258,7 @@ class Memcached implements \Presslabs\ObjectCache
             Memcached::$updated_options = array();
         }
 
+        ++$this->stats['set'];
         // If group is a non-Memcached group, save to runtime cache, not Memcached
         if (in_array($group, $this->no_mc_groups)) {
             $this->add_to_internal_cache($derived_key, $value);
@@ -1197,6 +1283,7 @@ class Memcached implements \Presslabs\ObjectCache
         // Store in runtime cache if add was successful
         $result_code = $this->getResultCode();
         if (\Memcached::RES_SUCCESS === $result_code) {
+            ++$this->stats['mc_set'];
             $this->add_to_internal_cache($derived_key, $value);
         } elseif (\Memcached::RES_DATA_EXISTS === $result_code) {
             // if CAS fails we delete the key from cache
@@ -1559,5 +1646,10 @@ class Memcached implements \Presslabs\ObjectCache
         global $table_prefix;
         $blog_id           = (int) $blog_id;
         $this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+    }
+
+    public function stats()
+    {
+        return $this->stats;
     }
 }

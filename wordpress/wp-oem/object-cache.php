@@ -196,7 +196,8 @@ function wp_cache_add_global_groups( $groups ) {
  * @return  bool    Always returns True
  */
 function wp_cache_close() {
-    return true;
+    global $wp_object_cache;
+    $wp_object_cache->close();
 }
 
 
@@ -264,6 +265,14 @@ class WP_Object_Cache {
     public function decr( $key, $offset = 1, $group = 'default' ) {
         return $this->backend->decrement( $key, $offset, $group );
     }
+
+	public function close() {
+		return $this->backend->close();
+	}
+
+	public function stats() {
+		return $this->backend->stats();
+	}
 }
 
 endif;
