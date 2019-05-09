@@ -32,8 +32,6 @@ pipeline:
         target: DOCKER_PASSWORD
     when:
       event: push
-      branch:
-        include: ['*-branch']
 
   test:
     image: quay.io/presslabs/php-runtime:testing-${DRONE_BRANCH}-${PHP_VERSION}
@@ -69,8 +67,6 @@ pipeline:
         target: DOCKER_PASSWORD
     when:
       event: push
-      branch:
-        include: ['*-branch']
 
   publish-composer-package:
     image: quay.io/presslabs/bfc
