@@ -180,6 +180,10 @@ class Memcached implements \Presslabs\ObjectCache
             return;
         }
 
+        if (!in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD'))) {
+            return;
+        }
+
         $this->request_hash = md5(json_encode(array(
             $_SERVER['HTTP_HOST'],
             $_SERVER['REQUEST_URI'],
