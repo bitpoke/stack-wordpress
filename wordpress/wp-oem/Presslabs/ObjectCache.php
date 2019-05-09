@@ -12,6 +12,8 @@ interface ObjectCache
     public function replace($key, $value, $group = 'default', $expiration = 0);
     public function delete($key, $group = 'default');
     public function flush();
+    public function close();
     public function increment($key, $offset = 1, $group = 'default');
     public function decrement($key, $offset = 1, $group = 'default');
+    public function stats();
 }
