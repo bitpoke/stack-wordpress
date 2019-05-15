@@ -196,20 +196,7 @@ class Memcached implements \Presslabs\ObjectCache
             $this->preload = array();
         }
 
-        if (!array_key_exists('options', $this->preload)) {
-            $this->preload['options'] = array();
-        }
-        $this->preload['options']['alloptions'] = true;
-
-        $groups = array();
-        $keys = array();
-        foreach ($this->preload as $group => $groupKeys) {
-            foreach ($groupKeys as $key => $_) {
-                $groups[] = $group;
-                $keys[] = $key;
-            }
-        }
-        $this->getMulti($keys, $groups);
+        $this->getMulti($this->preload, array());
     }
 
     public function updatePreloadKeys()
@@ -567,8 +554,8 @@ class Memcached implements \Presslabs\ObjectCache
     {
         $derived_key = $this->buildKey($key, $group);
 
-        if (array_key_exists($group, $this->preload) && array_key_exists($key, $this->preload[$group])) {
-            unset($this->preload[$group][$key]);
+        if (array_key_exists($derived_key, $this->preload)) {
+            unset($this->preload[$derived_key]);
         }
         // Remove from no_mc_groups array
         if (in_array($group, $this->no_mc_groups)) {
@@ -692,10 +679,7 @@ class Memcached implements \Presslabs\ObjectCache
 
         ++$this->stats['get'];
         if ($group != 'object-cache-preload' && !in_array($group, $this->no_mc_groups)) {
-            if (!array_key_exists($group, $this->preload)) {
-                $this->preload[$group] = array();
-            }
-            $this->preload[$group][$key] = true;
+            $this->preload[$derived_key] = true;
         }
 
         // If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
@@ -838,7 +822,12 @@ class Memcached implements \Presslabs\ObjectCache
      */
     public function getMulti($keys, $groups = 'default', $server_key = '', &$cas_tokens = null, $flags = null)
     {
-        $derived_keys = $this->buildKeys($keys, $groups);
+        if (empty($groups)) {
+            $derived_keys = $keys;
+        } else {
+            $derived_keys = $this->buildKeys($keys, $groups);
+        }
+
         ++$this->stats['multi_get'];
 
         /**
