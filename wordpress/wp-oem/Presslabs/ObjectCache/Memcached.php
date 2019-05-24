@@ -94,6 +94,8 @@ class Memcached implements \Presslabs\ObjectCache
             define('WP_CACHE_KEY_SALT', '1');
         }
 
+        $this->preloadEnabled = !defined('OBJECT_CACHE_PRELOAD') || !OBJECT_CACHE_PRELOAD;
+
         $server = explode(':', constant('MEMCACHED_HOST'));
         if (count($server) == 1) {
             $server[] = '11211';
@@ -174,13 +176,26 @@ class Memcached implements \Presslabs\ObjectCache
         }
     }
 
-    private function preloadCache()
+    private function shouldPreload()
     {
+        if (!$this->preloadEnabled) {
+            return false;
+        }
+
         if ((defined('WP_CLI') && WP_CLI) || (defined('DOING_CRON') && DOING_CRON)) {
-            return;
+            return false;
         }
 
         if (!in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD'))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function preloadCache()
+    {
+        if (!$this->shouldPreload()) {
             return;
         }
 
@@ -201,6 +216,10 @@ class Memcached implements \Presslabs\ObjectCache
 
     public function updatePreloadKeys()
     {
+        if (!$this->shouldPreload()) {
+            return;
+        }
+
         if ($this->request_hash) {
             $this->set($this->request_hash, $this->preload, 'object-cache-preload');
         }
@@ -721,7 +740,7 @@ class Memcached implements \Presslabs\ObjectCache
         }
 
         if (\Memcached::RES_SUCCESS === $this->getResultCode()) {
-            if ($group != 'object-cache-preload' && isset($value) && !in_array($group, $this->no_mc_groups) ) {
+            if ($group != 'object-cache-preload' && isset($value) && !in_array($group, $this->no_mc_groups)) {
                     $this->add_to_internal_cache($derived_key, $value);
                     $this->preload[$derived_key] = true;
             }

@@ -61,17 +61,35 @@ class TestObjectCache extends \WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $fake_key ) );
 	}
 
+}
+
+class TestObjectCachePreload extends \WP_UnitTestCase {
+	function setUp() {
+		wp_cache_init(); // reinitialize the cache
+
+		global $wp_object_cache;
+		$wp_object_cache->preloadEnabled = true;
+
+		wp_cache_flush();
+
+		parent::setUp();
+	}
+
 	function testCachePreloading() {
 		global $wp_object_cache;
 
 		$this->assertTrue( wp_cache_set( 'key1', 'val1', 'default' ) );
-		$this->assertEquals( 'val1', wp_cache_get( 'key1', 'default' ) );
-
 		$this->assertTrue( wp_cache_set( 'key2', 'val2', 'users' ) );
+
+		wp_cache_close(); // this nukes the local cache
+		wp_cache_init(); // reinitialize the cache
+
+		$this->assertEquals( 'val1', wp_cache_get( 'key1', 'default' ) );
 		$this->assertEquals( 'val2', wp_cache_get( 'key2', 'users' ) );
 
 		wp_cache_close(); // this nukes the local cache and saves the preload keys
 		wp_cache_init(); // reinitialize the cache
+
 		$before = $wp_object_cache->stats();
 		$this->assertEquals('val1', wp_cache_get('key1', 'default'));
 		$this->assertEquals('val2', wp_cache_get('key2', 'users'));
@@ -81,5 +99,6 @@ class TestObjectCache extends \WP_UnitTestCase {
 		$this->assertEquals(2, $after['get'] - $before['get']);
 		// Assert that no extra request has been made to memcache after preloading
 		$this->assertEquals($before['mc_get'], $after['mc_get']);
+
 	}
 }
