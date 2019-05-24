@@ -196,7 +196,7 @@ class Memcached implements \Presslabs\ObjectCache
             $this->preload = array();
         }
 
-        $this->getMulti($this->preload, array());
+        $this->getMulti(array_keys($this->preload), array());
     }
 
     public function updatePreloadKeys()
@@ -676,11 +676,7 @@ class Memcached implements \Presslabs\ObjectCache
 
         // Assume object is not found
         $found = false;
-
         ++$this->stats['get'];
-        if ($group != 'object-cache-preload' && !in_array($group, $this->no_mc_groups)) {
-            $this->preload[$derived_key] = true;
-        }
 
         // If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
         if (func_num_args() > 6 && ! in_array($group, $this->no_mc_groups)) {
@@ -725,7 +721,11 @@ class Memcached implements \Presslabs\ObjectCache
         }
 
         if (\Memcached::RES_SUCCESS === $this->getResultCode()) {
-            $this->add_to_internal_cache($derived_key, $value);
+            if ($group != 'object-cache-preload' && isset($value) && !in_array($group, $this->no_mc_groups) ) {
+                    $this->add_to_internal_cache($derived_key, $value);
+                    $this->preload[$derived_key] = true;
+            }
+
             $found = true;
         }
 
