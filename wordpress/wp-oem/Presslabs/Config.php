@@ -10,6 +10,7 @@ class Config
         if ($runCount > 0) {
             return;
         }
+        self::defineFromEnv("DOBJECT_CACHE_PRELOAD", false);
 
         self::defineFromEnv("MEMCACHED_HOST", "");
         self::defineFromEnv("MEMCACHED_DISCOVERY_HOST", "");
