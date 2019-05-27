@@ -1,9 +1,11 @@
 ARG PHP_VERSION=7.3.3
 FROM php:${PHP_VERSION}-fpm-stretch as php
+ARG FLAVOUR=minimal
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV PATH="/usr/local/docker/bin:${PATH}"
 ENV PHP_VERSION=${PHP_VERSION}
+ENV FLAVOUR=${FLAVOUR}
 ENV COMPOSER_VERSION=1.7.2
 ENV SUPERVISORD_VERSION=0.5
 ENV DOCKERIZE_VERSION=1.2.0
@@ -34,7 +36,7 @@ RUN set -ex \
     && /usr/local/docker/build-scripts/install-composer \
     && /usr/local/docker/build-scripts/install-dockerize \
     && /usr/local/docker/build-scripts/install-supervisord \
-    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.full.yaml \
+    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.${FLAVOUR}.yaml \
     && rm -rf /var/lib/apt/lists/* /tmp/pear/*
 
 # prepare rootfs

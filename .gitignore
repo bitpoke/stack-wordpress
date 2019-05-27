@@ -14,8 +14,10 @@ web/wp
 web/.htaccess
 
 wordpress/wp-config.php
+wordpress-develop/wp-tests-config.php
 
-/build
+build
+
 /vendor
 /.env
 /docker-compose.override.yml
