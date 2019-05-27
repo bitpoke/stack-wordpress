@@ -24,4 +24,6 @@ for d in themes plugins mu-plugins uploads upgrade ; do
     chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "${DOCUMENT_ROOT:-/var/www/html}/wp-content/$d"
 done
 
+chown "${WORKER_USER:-www-data}:${WORKER_GROUP:-www-data}" "/usr/local/etc/php/"
+
 exit 0

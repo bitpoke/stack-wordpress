@@ -45,7 +45,8 @@ RUN set -ex \
     } | tee /var/www/html/index.php >&2 \
     && chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /run \
-    && chown -R www-data:www-data /var/lib/nginx
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chown -R www-data:www-data /usr/local/etc/php/
 
 COPY --chown=www-data:www-data hack/docker /usr/local/docker
 USER www-data:www-data
