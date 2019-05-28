@@ -13,8 +13,12 @@ ENV GRPC_POLL_STRATEGY=epoll1
 
 RUN set -ex \
     && apt-get update \
+    && apt-get install --no-install-recommends -y gnupg2 \
+    && curl -s https://openresty.org/package/pubkey.gpg | apt-key add - \
+    && echo "deb http://openresty.org/package/debian stretch openresty" > /etc/apt/sources.list.d/openresty.list \
+    && apt-get update \
     && apt-get install --no-install-recommends -y \
-        ssmtp=2.64* unzip=6.0* libyaml-0-2=0.1* libyaml-dev=0.1* \
+        ssmtp=2.64* unzip=6.0* openresty=1.13* libyaml-0-2=0.1* libyaml-dev=0.1* \
         less=481* git=1:2.11* openssh-client=1:7.4* nginx-light=1.10* \
     # we need yaml support for installing extensions
     && pecl install yaml \
