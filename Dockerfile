@@ -48,6 +48,7 @@ RUN set -ex \
     && chown -R www-data:www-data /var/lib/nginx
 
 COPY --chown=www-data:www-data hack/docker /usr/local/docker
+COPY --chown=www-data:www-data ./nginx-lua /usr/local/docker/lib/nginx/lua/
 USER www-data:www-data
 
 EXPOSE 8080
