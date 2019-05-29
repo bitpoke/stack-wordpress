@@ -110,9 +110,6 @@
   build:
     depends:
       - 'libpcre3-dev'
-- name: opencensus
-  type: pecl
-  version: 0.2.2
 - name: redis
   type: pecl
   version: 4.3.0

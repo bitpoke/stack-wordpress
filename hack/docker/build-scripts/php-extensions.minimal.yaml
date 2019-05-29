@@ -57,6 +57,16 @@
   type: pecl
   version: 3.0.1
 
+# install apcu before serializers so that they detect and enable support for it
+- name: apcu
+  type: pecl
+  version: 5.1.17
+  priority: 30
+- name: apc
+  pecl_name: apcu_bc
+  type: pecl
+  version: 1.0.5
+
 - name: mailparse
   type: pecl
   version: 3.0.3
@@ -70,6 +80,3 @@
     args:
       - "--enable-memcached-igbinary"
       - "--enable-memcached-json"
-- name: opencensus
-  type: pecl
-  version: 0.2.2

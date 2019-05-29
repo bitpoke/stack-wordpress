@@ -1,4 +1,5 @@
 ARG PHP_VERSION=7.3.3
+ARG FLAVOUR=minimal
 FROM php:${PHP_VERSION}-fpm-stretch as php
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -30,7 +31,7 @@ RUN set -ex \
     && /usr/local/docker/build-scripts/install-composer \
     && /usr/local/docker/build-scripts/install-dockerize \
     && /usr/local/docker/build-scripts/install-supervisord \
-    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.full.yaml \
+    && /usr/local/docker/build-scripts/install-php-extensions /usr/local/docker/build-scripts/php-extensions.${FLAVOUR}.yaml \
     && rm -rf /var/lib/apt/lists/* /tmp/pear/*
 
 # prepare rootfs
@@ -45,8 +46,7 @@ RUN set -ex \
     } | tee /var/www/html/index.php >&2 \
     && chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /run \
-    && chown -R www-data:www-data /var/lib/nginx \
-    && chown -R www-data:www-data /usr/local/etc/php/
+    && chown -R www-data:www-data /var/lib/nginx
 
 COPY --chown=www-data:www-data hack/docker /usr/local/docker
 USER www-data:www-data
