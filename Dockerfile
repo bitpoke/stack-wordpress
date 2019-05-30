@@ -1,10 +1,11 @@
 ARG PHP_VERSION=7.3.3
-ARG FLAVOUR=minimal
 FROM php:${PHP_VERSION}-fpm-stretch as php
+ARG FLAVOUR=minimal
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV PATH="/usr/local/docker/bin:${PATH}"
 ENV PHP_VERSION=${PHP_VERSION}
+ENV FLAVOUR=${FLAVOUR}
 ENV COMPOSER_VERSION=1.7.2
 ENV SUPERVISORD_VERSION=0.5
 ENV DOCKERIZE_VERSION=1.2.0
