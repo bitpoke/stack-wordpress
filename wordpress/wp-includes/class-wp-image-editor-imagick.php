@@ -34,6 +34,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image->clear();
 			$this->image->destroy();
 		}
+
 		// if we have processed files from stream wrappers remove the local copies
 		if ( is_array( $this->_tmp ) ) {
 			foreach ( $this->_tmp as $tmpfile ) {
@@ -771,8 +772,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 			// Only load the first page.
 			return $local_file . '[0]';
-		}
-		catch ( Exception $e ) {
+		} catch ( Exception $e ) {
 			return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
 		}
 	}

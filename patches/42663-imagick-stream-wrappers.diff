@@ -1,8 +1,8 @@
-diff --git wordpress-orig/wp-includes/class-wp-image-editor-imagick.php wordpress/wp-includes/class-wp-image-editor-imagick.php
-index abb2150..3905c50 100644
---- wordpress-orig/wp-includes/class-wp-image-editor-imagick.php
-+++ wordpress/wp-includes/class-wp-image-editor-imagick.php
-@@ -21,12 +21,25 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
+diff --git a/wordpress/wp-includes/class-wp-image-editor-imagick.php b/wordpress/wp-includes/class-wp-image-editor-imagick.php
+index abb2150..4bb17a0 100644
+--- a/wordpress/wp-includes/class-wp-image-editor-imagick.php
++++ b/wordpress/wp-includes/class-wp-image-editor-imagick.php
+@@ -21,12 +21,26 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
  	 */
  	protected $image;
  
@@ -19,6 +19,7 @@ index abb2150..3905c50 100644
  			$this->image->clear();
  			$this->image->destroy();
  		}
++
 +		// if we have processed files from stream wrappers remove the local copies
 +		if ( is_array( $this->_tmp ) ) {
 +			foreach ( $this->_tmp as $tmpfile ) {
@@ -28,7 +29,7 @@ index abb2150..3905c50 100644
  	}
  
  	/**
-@@ -135,6 +148,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
+@@ -135,6 +149,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
  			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
  		}
  
@@ -49,7 +50,7 @@ index abb2150..3905c50 100644
  		/*
  		 * Even though Imagick uses less PHP memory than GD, set higher limit
  		 * for users that have low PHP.ini limits.
-@@ -144,10 +171,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
+@@ -144,10 +172,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
  		try {
  			$this->image    = new Imagick();
  			$file_extension = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
@@ -62,7 +63,7 @@ index abb2150..3905c50 100644
  			}
  
  			// Reading image after Imagick instantiation because `setResolution`
-@@ -736,17 +763,45 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
+@@ -736,17 +764,44 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
  	 *
  	 * @return string|WP_Error File to load or WP_Error on failure.
  	 */
@@ -75,10 +76,8 @@ index abb2150..3905c50 100644
  
  			// Only load the first page.
 -			return $this->file . '[0]';
--		} catch ( Exception $e ) {
 +			return $local_file . '[0]';
-+		}
-+		catch ( Exception $e ) {
+ 		} catch ( Exception $e ) {
  			return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
  		}
  	}
