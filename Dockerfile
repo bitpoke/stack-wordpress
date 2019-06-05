@@ -21,7 +21,7 @@ RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         ssmtp=2.64* unzip=6.0* openresty=1.13* libyaml-0-2=0.1* libyaml-dev=0.1* \
-        less=481* git=1:2.11* openssh-client=1:7.4* nginx-light=1.10* \
+        less=481* git=1:2.11* openssh-client=1:7.4* \
     # we need yaml support for installing extensions
     && pecl install yaml \
     && docker-php-ext-enable --ini-name 50-docker-php-ext-yaml.ini yaml \
@@ -49,6 +49,8 @@ RUN set -ex \
     && { \
        echo "<?php phpinfo(); "; \
     } | tee /var/www/html/index.php >&2 \
+    && mkdir -p /var/lib/nginx/log \
+    && ln -sf /dev/stderr /var/lib/nginx/log/error.log \
     && chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /run \
     && chown -R www-data:www-data /var/lib/nginx
