@@ -20,7 +20,7 @@ url="$2"
 user="$3"
 # escape quotes
 # due to: https://github.com/wp-cli/wp-cli/issues/5089
-pass=$(echo $4 | sed -e "s/'/\\\'/g" -e 's/"/\\"/g')
+pass=$(echo $4 | sed -e "s/'/\\\\\'/g" -e 's/"/\\\\"/g')
 email="$5"
 
 wp core install \
@@ -30,4 +30,4 @@ wp core install \
     --admin_password="$pass" \
     --admin_email="$email" \
     --skip-email \
-    "$@"
+    "${@:6}"
