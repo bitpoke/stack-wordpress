@@ -24,9 +24,10 @@ pass=$(echo $4 | sed -e "s/'/\\\'/g" -e 's/"/\\"/g')
 email="$5"
 
 wp core install \
-    ---title="$title" \
-    ---url="$url" \
-    ---admin_user="$user" \
-    ---admin_password="$pass" \
-    ---admin_email="$email" \
-    ---skip-email
+    --title="$title" \
+    --url="$url" \
+    --admin_user="$user" \
+    --admin_password="$pass" \
+    --admin_email="$email" \
+    --skip-email \
+    "$@"
