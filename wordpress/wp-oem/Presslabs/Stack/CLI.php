@@ -85,11 +85,14 @@ class CLI extends WP_CLI_Command
         $chartPath = CHART_DIR . '/wordpress-site';
 
         return <<<EOF
-apiVersion: skaffold/v1beta7
+apiVersion: skaffold/v1beta9
 kind: Config
 build:
   artifacts:
   - image: $dockerImage
+  tagPolicy:
+    dateTime:
+      format: 2006-01-02_15-04-05.999_MST
 deploy:
   helm:
     releases:
